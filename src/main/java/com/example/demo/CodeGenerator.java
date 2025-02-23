@@ -1,12 +1,19 @@
 package com.example.demo;
 
 
+import com.baomidou.mybatisplus.generator.FastAutoGenerator;
+import com.baomidou.mybatisplus.generator.config.OutputFile;
+import com.baomidou.mybatisplus.generator.config.rules.DbColumnType;
+import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
+
+import java.sql.Types;
+import java.util.Collections;
 
 public class CodeGenerator {
     public static void main(String[] args) {
-        FastAutoGenerator.create("url", "username", "password")
+        FastAutoGenerator.create("jdbc:mysql://192.168.31.98:3306/databaseV1?useSSL=false&serverTimezone=UTC", "root", "root")
                 .globalConfig(builder -> {
-                    builder.author("baomidou") // 设置作者
+                    builder.author("vkk") // 设置作者
                             .enableSwagger() // 开启 swagger 模式
                             .outputDir("D://"); // 指定输出目录
                 })
