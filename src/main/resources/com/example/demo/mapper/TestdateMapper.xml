@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.TestdateMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.demo.entity.Testdate">
+            <result property="c1" column="C1" />
+            <result property="c2" column="C2" />
+            <result property="c3" column="C3" />
+            <result property="c4" column="C4" />
+            <result property="c5" column="C5" />
+            <result property="c6" column="C6" />
+            <result property="c7" column="C7" />
+            <result property="c8" column="C8" />
+            <result property="c9" column="C9" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        C1,C2,C3,C4,C5,C6,
+        C7,C8,C9
+    </sql>
+</mapper>

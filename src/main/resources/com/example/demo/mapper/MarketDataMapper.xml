@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.MarketDataMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.demo.entity.MarketData">
+            <id property="dataId" column="data_id" />
+            <result property="stockId" column="stock_id" />
+            <result property="price" column="price" />
+            <result property="volume" column="volume" />
+            <result property="timestamp" column="timestamp" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        data_id,stock_id,price,volume,timestamp
+    </sql>
+</mapper>
