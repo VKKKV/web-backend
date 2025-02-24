@@ -35,7 +35,7 @@ public class PageTest {
     @Test
     void testPageWithLambda() {
         IPage<Users> page = new Page<>(1, 5);
-        usersSerive.page(page, new LambdaQueryWrapper<Users>().eq(Users::getUsername, "test")).getRecords().forEach(System.out::println);
+        usersService.page(page, new LambdaQueryWrapper<Users>().eq(Users::getUsername, "test")).getRecords().forEach(System.out::println);
     }
 
     @Test

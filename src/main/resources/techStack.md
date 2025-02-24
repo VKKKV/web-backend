@@ -26,11 +26,15 @@ WebSocket   (pending)
 echarts (pending)
 TypeScript  (pending)
 
-# deploy
+# other
+## deploy
 Docker
 
+## documentation
+Knife4J
 
 # note
-idea keymap
 ALT j select matches
+redis-cli --raw
+
 

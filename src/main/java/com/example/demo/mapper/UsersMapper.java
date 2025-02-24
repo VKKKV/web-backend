@@ -1,5 +1,6 @@
 package com.example.demo.mapper;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.demo.entity.Users;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
@@ -10,7 +11,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @Entity com.example.demo.entity.Users
 */
 public interface UsersMapper extends BaseMapper<Users> {
-
+    IPage<Users> selectUserPage(IPage<Users> page);
 }
 
 

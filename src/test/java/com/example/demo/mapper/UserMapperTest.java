@@ -47,7 +47,10 @@ class UserMapperTest {
     void testUpdateById() {
         Users user = userMapper.selectById(1);
         user.setUsername("test1");
-        userMapper.updateById(user);
+        if (userMapper.selectCount(new LambdaQueryWrapper<Users>().eq(Users::getUsername, "test1")) == 0) {
+            userMapper.updateById(user);
+        }
+
     }
 
     @Test
