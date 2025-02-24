@@ -44,3 +44,8 @@ TypeScript  (pending)
 Docker
 
 
+# note
+
+idea keymap
+ALT j select matches
+

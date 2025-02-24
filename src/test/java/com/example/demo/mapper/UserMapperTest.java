@@ -1,5 +1,6 @@
 package com.example.demo.mapper;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.example.demo.entity.User;
 import org.junit.jupiter.api.Test;
@@ -30,16 +31,16 @@ class UserMapperTest {
         ));
     }
 
-    // pending
     @Test
     void testInsert() {
         User user = new User();
-        user.setUsername("test");
+        user.setUsername("test1");
         user.setPassword("123");
         user.setEmail("test@example.com");
         user.setPhone("1234567890");
-        // 避免 username 重复
-        if (userMapper.selectByUsername("test")) userMapper.insert(user);
+        if (userMapper.selectCount(new LambdaQueryWrapper<User>().eq(User::getUsername, "test1")) == 0) {
+            userMapper.insert(user);
+        }
     }
 
     @Test
