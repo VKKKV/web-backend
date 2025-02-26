@@ -12,6 +12,9 @@ spring:
       port: 6379
       database: 0
 
+server:
+  port: 8080
+
 # springdoc-openapi项目配置
 springdoc:
   swagger-ui:
@@ -30,6 +33,9 @@ knife4j:
   setting:
     language: zh_cn
 
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 #global logic delete
 
@@ -41,7 +47,4 @@ knife4j:
 #      logic-not-delete-value: 0
 
 # print crud log
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
