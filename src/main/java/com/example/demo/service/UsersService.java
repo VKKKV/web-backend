@@ -2,6 +2,9 @@ package com.example.demo.service;
 
 import com.example.demo.entity.Users;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.demo.dto.UserDTO;
+import com.example.demo.mapper.UsersMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
 * @author Kita
@@ -9,5 +12,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2025-02-24 16:42:24
 */
 public interface UsersService extends IService<Users> {
+
+    String login(UserDTO userDTO);
+
+    UserDTO getUserInfoById(Integer userId);
 
 }

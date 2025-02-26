@@ -1,58 +1,45 @@
 package com.example.demo.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.util.Date;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
  * 
  * @TableName users
  */
-@TableName(value ="users")
+@TableName(value = "users")
+
 @Data
+@Schema(description = "用户实体")
 public class Users {
-    /**
-     * 
-     */
     @TableId(type = IdType.AUTO)
+    @Schema(description = "用户唯一ID", example = "1001")
     private Integer userId;
 
-    /**
-     * 用户登录名
-     */
+    @Schema(description = "用户登录名", example = "john_doe", maxLength = 50)
     private String username;
 
-    /**
-     * BCrypt加密密码
-     */
+    @Schema(description = "BCrypt加密密码", example = "$2a$10$...", accessMode = Schema.AccessMode.WRITE_ONLY)
     private String passwordHash;
 
-    /**
-     * 用户邮箱
-     */
+    @Schema(description = "用户邮箱", example = "user@example.com", format = "email")
     private String email;
 
-    /**
-     * 国际格式: +国家码 号码
-     */
+    @Schema(description = "电话号码", example = "13812345678")
     private String phone;
 
-    /**
-     * 
-     */
+    @Schema(description = "创建时间", accessMode = Schema.AccessMode.READ_ONLY)
     private Date createdAt;
 
-    /**
-     * 
-     */
+    @Schema(description = "更新时间", accessMode = Schema.AccessMode.READ_ONLY)
     private Date updatedAt;
 
-    /**
-     * 逻辑删除标识：0-未删除，1-已删除
-     */
+    @Schema(description = "删除状态: 0-正常, 1-删除", allowableValues = { "0", "1" })
     private Integer isDeleted;
 
     @Override
@@ -68,13 +55,18 @@ public class Users {
         }
         Users other = (Users) that;
         return (this.getUserId() == null ? other.getUserId() == null : this.getUserId().equals(other.getUserId()))
-            && (this.getUsername() == null ? other.getUsername() == null : this.getUsername().equals(other.getUsername()))
-            && (this.getPasswordHash() == null ? other.getPasswordHash() == null : this.getPasswordHash().equals(other.getPasswordHash()))
-            && (this.getEmail() == null ? other.getEmail() == null : this.getEmail().equals(other.getEmail()))
-            && (this.getPhone() == null ? other.getPhone() == null : this.getPhone().equals(other.getPhone()))
-            && (this.getCreatedAt() == null ? other.getCreatedAt() == null : this.getCreatedAt().equals(other.getCreatedAt()))
-            && (this.getUpdatedAt() == null ? other.getUpdatedAt() == null : this.getUpdatedAt().equals(other.getUpdatedAt()))
-            && (this.getIsDeleted() == null ? other.getIsDeleted() == null : this.getIsDeleted().equals(other.getIsDeleted()));
+                && (this.getUsername() == null ? other.getUsername() == null
+                        : this.getUsername().equals(other.getUsername()))
+                && (this.getPasswordHash() == null ? other.getPasswordHash() == null
+                        : this.getPasswordHash().equals(other.getPasswordHash()))
+                && (this.getEmail() == null ? other.getEmail() == null : this.getEmail().equals(other.getEmail()))
+                && (this.getPhone() == null ? other.getPhone() == null : this.getPhone().equals(other.getPhone()))
+                && (this.getCreatedAt() == null ? other.getCreatedAt() == null
+                        : this.getCreatedAt().equals(other.getCreatedAt()))
+                && (this.getUpdatedAt() == null ? other.getUpdatedAt() == null
+                        : this.getUpdatedAt().equals(other.getUpdatedAt()))
+                && (this.getIsDeleted() == null ? other.getIsDeleted() == null
+                        : this.getIsDeleted().equals(other.getIsDeleted()));
     }
 
     @Override
