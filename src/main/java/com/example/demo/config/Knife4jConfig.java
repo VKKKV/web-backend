@@ -15,29 +15,37 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class Knife4jConfig {
 
-//    @Bean
-//    public OpenAPI springShopOpenAPI() {
-//        return new OpenAPI()
-//                .info(new Info()
-//                        .title("股票交易平台 API 文档")
-//                        .description("基于 Knife4j + Spring Boot 的接口文档")
-//                        .version("v1.0.0")
-//                        .contact(new Contact().name("vkk").email("dev@trade" +
-//                                ".com")))
-//                .externalDocs(new ExternalDocumentation()
-//                        .description("GitHub 仓库")
-//                        .url("https://github.com/pending"));
-//    }
     @Bean
-    public OpenAPI customOpenAPI() {
+    public OpenAPI springShopOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("APP接口")
-                        .version("1.0")
-                        .description("用户端APP接口")
-                        .termsOfService("http://doc.xiaominfo.com")
-                        .license(new License().name("Apache 2.0")
-                                .url("http://doc.xiaominfo.com")));
+                        .title("股票交易平台 API 文档")
+                        .description("基于 Knife4j + Spring Boot 的接口文档")
+                        .version("v1.0.0")
+                        .contact(new Contact().name("vkk")))
+                .externalDocs(new ExternalDocumentation()
+                        .description("GitHub 仓库")
+                        .url("https://github.com/VKKKV/web-backend"));
+    }
+
+//    @Bean
+//    public OpenAPI customOpenAPI() {
+//        return new OpenAPI()
+//                .info(new Info()
+//                        .title("APP接口")
+//                        .version("1.0")
+//                        .description("用户端APP接口")
+//                        .termsOfService("http://doc.xiaominfo.com")
+//                        .license(new License().name("Apache 2.0")
+//                                .url("http://doc.xiaominfo.com")));
+//    }
+
+    @Bean
+    public GroupedOpenApi userApi() {
+        return GroupedOpenApi.builder()
+                .group("User")
+                .pathsToExclude("/api/v1/users/**")
+                .build();
     }
 
 
@@ -58,16 +66,5 @@ public class Knife4jConfig {
                 ).
                 build();
     }
-
-
-    @Bean
-    public GroupedOpenApi userApi() {
-        return GroupedOpenApi.builder()
-                .group("User")
-                .pathsToExclude("/api/v1/users/**")
-                .build();
-    }
-
-
 }
 
