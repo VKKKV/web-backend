@@ -37,13 +37,13 @@ public class Result<T> {
     }
 
     //公开 成功返回
-    public static <T> Result<T> ok(T data) {
+    public static <T> Result<T> success(T data) {
         return build(data, ResultCodeEnum.SUCCESS);
     }
 
     //公开 成功返回 不包含数据
-    public static <T> Result<T> ok() {
-        return Result.ok(null);
+    public static <T> Result<T> success() {
+        return Result.success(null);
     }
 
     //公开 失败 不包含数据
