@@ -4,50 +4,46 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.Date;
 import lombok.Data;
 
-/**
- * 
- * @TableName trading_strategies
- */
+
 @TableName(value ="trading_strategies")
 @Data
+@Schema(description = "交易策略实体")
+/**
+ * 用户交易策略实体
+ * 对应 trading_strategies 表，存储用户自定义交易策略
+ * 使用MyBatis Plus逻辑删除（见application.yml配置）
+ */
 public class TradingStrategies {
-    /**
-     * 
-     */
     @TableId(type = IdType.AUTO)
+    @Schema(description = "策略唯一ID", example = "2001")
     private Integer strategyId;
 
-    /**
-     * 
-     */
+    @Schema(description = "关联用户ID", example = "1001")
     private Integer userId;
 
-    /**
-     * 策略名称
-     */
+    @Schema(description = "策略名称", example = "均线突破策略")
     private String name;
 
-    /**
-     * JSON格式策略条件
-     */
+    @Schema(description = "JSON格式触发条件", 
+           example = "{\"conditionType\": \"MA\", \"period\": 5}")
     private Object triggerCondition;
 
-    /**
-     * 
-     */
+    @Schema(description = "策略状态: 1-启用, 0-停用", 
+           allowableValues = {"1", "0"})
     private Object status;
 
-    /**
-     * 
-     */
+    @Schema(description = "策略创建时间（自动生成）", 
+           accessMode = Schema.AccessMode.READ_ONLY)
     private Date createdAt;
 
-    /**
-     * 
-     */
+    @Schema(description = "最后修改时间（自动更新）", 
+           accessMode = Schema.AccessMode.READ_ONLY)
     private Date updatedAt;
 
     @Override

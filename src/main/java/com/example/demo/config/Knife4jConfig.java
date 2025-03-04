@@ -28,42 +28,24 @@ public class Knife4jConfig {
                         .url("https://github.com/VKKKV/web-backend"));
     }
 
-//    @Bean
-//    public OpenAPI customOpenAPI() {
-//        return new OpenAPI()
-//                .info(new Info()
-//                        .title("APP接口")
-//                        .version("1.0")
-//                        .description("用户端APP接口")
-//                        .termsOfService("http://doc.xiaominfo.com")
-//                        .license(new License().name("Apache 2.0")
-//                                .url("http://doc.xiaominfo.com")));
-//    }
-
     @Bean
     public GroupedOpenApi userApi() {
-        return GroupedOpenApi.builder()
-                .group("User")
-                .pathsToExclude("/api/v1/users/**")
-                .build();
-    }
-
-
-    @Bean
-    public GroupedOpenApi loginAPI() {
-        return GroupedOpenApi.builder().group("登录信息").
-                pathsToMatch("/app/login/**", "/app/info").
+        return GroupedOpenApi.builder().group("User").
+                pathsToMatch("/api/v1/users/**").
                 build();
     }
 
     @Bean
-    public GroupedOpenApi personAPI() {
-        return GroupedOpenApi.builder().group("个人信息").
-                pathsToMatch(
-                        "/app/history/**",
-                        "/app/appointment/**",
-                        "/app/agreement/**"
-                ).
+    public GroupedOpenApi tradeApi() {
+        return GroupedOpenApi.builder().group("Trade").
+                pathsToMatch("/api/v1/trades/**").
+                build();
+    }
+
+    @Bean
+    public GroupedOpenApi stockApi() {
+        return GroupedOpenApi.builder().group("Stock").
+                pathsToMatch("/api/v1/stocks/**").
                 build();
     }
 }

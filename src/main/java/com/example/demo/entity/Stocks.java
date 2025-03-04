@@ -4,34 +4,26 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-/**
- * 
- * @TableName stocks
- */
-@TableName(value ="stocks")
+@TableName(value = "stocks")
 @Data
+@Schema(description = "股票信息实体")
 public class Stocks {
-    /**
-     * 
-     */
+
     @TableId(type = IdType.AUTO)
+    @Schema(description = "股票唯一标识", example = "1001")
     private Integer stockId;
 
-    /**
-     * 股票唯一代码
-     */
+    @Schema(description = "股票代码（唯一）", example = "600519")
     private String stockCode;
 
-    /**
-     * 股票全称
-     */
+    @Schema(description = "股票全称", example = "贵州茅台酒股份有限公司")
     private String stockName;
 
-    /**
-     * 所属市场: SH/SZ等
-     */
+    @Schema(description = "所属交易所: SH-上交所, SZ-深交所", example = "SH", allowableValues = { "SH", "SZ" })
     private String market;
 
     @Override
@@ -47,9 +39,11 @@ public class Stocks {
         }
         Stocks other = (Stocks) that;
         return (this.getStockId() == null ? other.getStockId() == null : this.getStockId().equals(other.getStockId()))
-            && (this.getStockCode() == null ? other.getStockCode() == null : this.getStockCode().equals(other.getStockCode()))
-            && (this.getStockName() == null ? other.getStockName() == null : this.getStockName().equals(other.getStockName()))
-            && (this.getMarket() == null ? other.getMarket() == null : this.getMarket().equals(other.getMarket()));
+                && (this.getStockCode() == null ? other.getStockCode() == null
+                        : this.getStockCode().equals(other.getStockCode()))
+                && (this.getStockName() == null ? other.getStockName() == null
+                        : this.getStockName().equals(other.getStockName()))
+                && (this.getMarket() == null ? other.getMarket() == null : this.getMarket().equals(other.getMarket()));
     }
 
     @Override

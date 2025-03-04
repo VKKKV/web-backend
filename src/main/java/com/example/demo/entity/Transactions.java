@@ -4,61 +4,59 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.math.BigDecimal;
 import java.util.Date;
 import lombok.Data;
 
-/**
- * 
- * @TableName transactions
- */
 @TableName(value ="transactions")
 @Data
+@Schema(description = "股票交易记录实体")
 public class Transactions {
-    /**
-     * 交易流水号
-     */
     @TableId(type = IdType.AUTO)
+    @Schema(description = "交易流水号（唯一标识）", 
+           example = "50000001", 
+           accessMode = Schema.AccessMode.READ_ONLY)
     private Long transactionId;
 
-    /**
-     * 
-     */
+    @Schema(description = "关联用户ID（对应用户表）", example = "1001", required = true)
     private Integer userId;
 
-    /**
-     * 
-     */
+    @Schema(description = "关联股票ID（对应股票表）", example = "1001", required = true)
     private Integer stockId;
 
-    /**
-     * 交易类型
-     */
+    @Schema(description = "交易类型", 
+           example = "BUY", 
+           allowableValues = {"BUY", "SELL"}, 
+           required = true)
     private Object actionType;
 
-    /**
-     * 精确到4位小数
-     */
+    @Schema(description = "成交单价（精确到4位小数）", 
+           example = "152.4300", 
+           format = "decimal(19,4)",
+           required = true)
     private BigDecimal price;
 
-    /**
-     * 交易数量(股)
-     */
+    @Schema(description = "交易数量（正整数）", 
+           example = "100", 
+           minimum = "1",
+           required = true)
     private Integer quantity;
 
-    /**
-     * 
-     */
+    @Schema(description = "订单状态", 
+           example = "EXECUTED", 
+           allowableValues = {"PENDING", "EXECUTED", "CANCELED"},
+           accessMode = Schema.AccessMode.READ_ONLY)
     private Object status;
 
-    /**
-     * 订单创建时间
-     */
+    @Schema(description = "订单创建时间（系统自动生成）", 
+           accessMode = Schema.AccessMode.READ_ONLY)
     private Date createdAt;
 
-    /**
-     * 订单执行时间
-     */
+    @Schema(description = "订单执行时间（成交时更新）", 
+           accessMode = Schema.AccessMode.READ_ONLY)
     private Date executedAt;
 
     @Override
