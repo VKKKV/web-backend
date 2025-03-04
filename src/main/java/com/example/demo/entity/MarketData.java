@@ -14,30 +14,15 @@ import lombok.Data;
 @TableName(value ="market_data")
 @Data
 public class MarketData {
-    /**
-     * 
-     */
     @TableId(type = IdType.AUTO)
     private Long dataId;
 
-    /**
-     * 
-     */
     private Integer stockId;
 
-    /**
-     * 
-     */
     private BigDecimal price;
 
-    /**
-     * 成交量(股)
-     */
     private Long volume;
 
-    /**
-     * 精确到毫秒
-     */
     private Date timestamp;
 
     @Override

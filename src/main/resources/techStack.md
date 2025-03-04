@@ -27,7 +27,7 @@ TypeScript  (pending)
 
 # other
 ## code generation
-MapStruct
+MapStruct TODO
 
 ## deploy
 Docker

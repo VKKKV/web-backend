@@ -16,13 +16,13 @@ import org.springframework.context.annotation.Configuration;
 public class Knife4jConfig {
 
     @Bean
-    public OpenAPI springShopOpenAPI() {
+    public OpenAPI customOpenApi() {
         return new OpenAPI()
                 .info(new Info()
                         .title("股票交易平台 API 文档")
                         .description("基于 Knife4j + Spring Boot 的接口文档")
                         .version("v1.0.0")
-                        .contact(new Contact().name("vkk")))
+                        .contact(new Contact().name("zy")))
                 .externalDocs(new ExternalDocumentation()
                         .description("GitHub 仓库")
                         .url("https://github.com/VKKKV/web-backend"));
