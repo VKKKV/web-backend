@@ -45,7 +45,7 @@ public class Knife4jConfig {
     @Bean
     public GroupedOpenApi stockApi() {
         return GroupedOpenApi.builder().group("Stock").
-                pathsToMatch("/api/v1/stocks/**").
+                pathsToMatch("/api/v1/strategy/**").
                 build();
     }
 }

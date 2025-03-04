@@ -13,6 +13,9 @@ import java.util.*;
 @Tag(name = "行情数据模块", description = "股票市场数据接口")
 public class MarketController {
 
+
+
+
     @GetMapping("/history")
     @Operation(summary = "查询历史行情")
     public Result<List<Map<String, Object>>> getHistory(
