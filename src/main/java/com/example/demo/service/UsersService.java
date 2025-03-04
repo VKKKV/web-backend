@@ -15,6 +15,5 @@ public interface UsersService extends IService<Users> {
 
     String login(UserDTO userDTO);
 
-    UserDTO getUserInfoById(Integer userId);
-
+    Integer registerUser(UserDTO userDTO);
 }

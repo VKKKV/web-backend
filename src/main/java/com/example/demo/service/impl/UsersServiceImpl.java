@@ -54,19 +54,10 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
         return JwtUtil.createToken(user.getUserId(), userDTO.getPhone());//调用工具类。
     }
 
-    /**
-     * 根据userId，获取用户信息。
-     *
-     * @param userId
-     * @return
-     */
     @Override
-    public UserDTO getUserInfoById(Integer userId) {
-//        Users user = usersMapper.selectById(userId);
-//        return UserConverter.MAPPER.toDTO(user);
-        return null;
+    public Integer registerUser(UserDTO userDTO) {
+        return 0;
     }
-
 }
 
 
