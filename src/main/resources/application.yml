@@ -1,3 +1,6 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: demo1
@@ -14,39 +17,20 @@ spring:
       maximum-pool-size: 12 #连接池最大连接数，默认是10
       minimum-idle: 10 #最小空闲连接数量
       pool-name: KitariPool # 连接池名称
+      # redis
   data:
     redis:
       host: 192.168.31.98
       port: 6379
       database: 0
 
-server:
-  port: 8080
-
-# springdoc-openapi项目配置
 springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: alpha
-  api-docs:
-    path: /v3/api-docs
-  group-configs:
-    - group: 'default'
-      paths-to-match: '/**'
-      packages-to-scan: com.xiaominfo.knife4j.demo.web
-# knife4j的增强配置，不需要增强可以不配
-knife4j:
-  enable: true
-  setting:
-    language: zh_cn
+  default-flat-param-object: true
 
 #用于打印框架生成的sql语句，便于调试
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-
-#global logic delete
 
 #mybatis-plus:
 #  global-config:
@@ -54,6 +38,3 @@ mybatis-plus:
 #      logic-delete-field: isDeleted
 #      logic-delete-value: 1
 #      logic-not-delete-value: 0
-
-# print crud log
-
