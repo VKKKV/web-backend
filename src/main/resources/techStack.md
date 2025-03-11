@@ -10,6 +10,7 @@ mybatis-plus-generator 3.5.10.1
 
 ## security
 JWT
+BCrypt
 
 # database
 mysql 8
