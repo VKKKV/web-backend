@@ -17,6 +17,12 @@ public enum ResultCodeEnum {
     REPEAT_SUBMIT(206, "重复提交"),
     DELETE_ERROR(207, "请先删除子集"),
 
+    // 用户相关错误码
+    USER_NOT_EXIST(401, "用户不存在"),
+    USERNAME_EXIST(402, "用户名已存在"),
+    PASSWORD_ERROR(403, "密码错误"),
+    USER_DISABLED(404, "用户已被禁用"),
+
     ADMIN_ACCOUNT_EXIST_ERROR(301, "账号已存在"),
     ADMIN_CAPTCHA_CODE_ERROR(302, "验证码错误"),
     ADMIN_CAPTCHA_CODE_EXPIRED(303, "验证码已过期"),

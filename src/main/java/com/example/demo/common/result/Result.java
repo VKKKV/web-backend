@@ -58,4 +58,12 @@ public class Result<T> {
         result.setMessage(message);
         return result;
     }
+
+    //新增 根据ResultCodeEnum创建返回值
+    public static <T> Result<T> fail(ResultCodeEnum resultCodeEnum) {
+        Result<T> result = build(null);
+        result.setCode(resultCodeEnum.getCode());
+        result.setMessage(resultCodeEnum.getMessage());
+        return result;
+    }
 }
