@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.demo.entity.Stocks;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -9,5 +10,19 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2025-02-24 16:42:24
 */
 public interface StocksService extends IService<Stocks> {
+    /**
+     * 根据股票代码查询股票信息
+     * @param stockCode 股票代码
+     * @return 股票信息
+     */
+    Stocks getByStockCode(String stockCode);
 
+    /**
+     * 分页查询股票信息
+     * @param page 页码
+     * @param pageSize 每页大小
+     * @param keyword 搜索关键词（可选）
+     * @return 分页结果
+     */
+    IPage<Stocks> getStocksByPage(int page, int pageSize, String keyword);
 }
