@@ -2,10 +2,9 @@ package com.example.demo.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.demo.common.exception.LeaseException;
+import com.example.demo.common.exception.TradeException;
 import com.example.demo.common.result.ResultCodeEnum;
 import com.example.demo.common.utils.JwtUtil;
-import com.example.demo.converter.UserConverter;
 import com.example.demo.entity.Users;
 import com.example.demo.service.UsersService;
 import com.example.demo.mapper.UsersMapper;
@@ -32,7 +31,7 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
     public String login(UserDTO userDTO) {
         //1.判断手机号码和验证码是否为空
         if (!StringUtils.hasText(userDTO.getPhone())) {
-            throw new LeaseException(ResultCodeEnum.APP_LOGIN_PHONE_EMPTY);//号码为空异常。
+            throw new TradeException(ResultCodeEnum.APP_LOGIN_PHONE_EMPTY);//号码为空异常。
         }
 
         //2.判断用户是否存在,不存在则注册（创建用户）

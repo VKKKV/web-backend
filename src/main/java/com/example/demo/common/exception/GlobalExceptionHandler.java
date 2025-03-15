@@ -30,10 +30,10 @@ public class GlobalExceptionHandler {
      * @param e
      * @return
      */
-    @ExceptionHandler(LeaseException.class)
+    @ExceptionHandler(TradeException.class)
     @ResponseBody
-    public Result error(LeaseException e){
+    public Result error(TradeException e){
         e.printStackTrace();
-        return Result.fail(e.getCode(), e.getMessage());//删除公寓异常时的返回值。
+        return Result.fail(e.getCode(), e.getMessage());
     }
 }

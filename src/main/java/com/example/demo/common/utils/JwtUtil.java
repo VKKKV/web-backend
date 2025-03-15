@@ -1,6 +1,6 @@
 package com.example.demo.common.utils;
 
-import com.example.demo.common.exception.LeaseException;
+import com.example.demo.common.exception.TradeException;
 import com.example.demo.common.result.ResultCodeEnum;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -42,7 +42,7 @@ public class JwtUtil {
     public static Claims parseToken(String token) {
         //判断token是否为null
         if (token == null) {
-            throw new LeaseException(ResultCodeEnum.ADMIN_LOGIN_AUTH);//未登录异常
+            throw new TradeException(ResultCodeEnum.ADMIN_LOGIN_AUTH);//未登录异常
         }
 
         try {
@@ -61,9 +61,9 @@ public class JwtUtil {
                     .getPayload();
 
         } catch (ExpiredJwtException e) {
-            throw new LeaseException(ResultCodeEnum.TOKEN_EXPIRED);//token过期
+            throw new TradeException(ResultCodeEnum.TOKEN_EXPIRED);//token过期
         } catch (JwtException e) {
-            throw new LeaseException(ResultCodeEnum.TOKEN_INVALID);//token非法
+            throw new TradeException(ResultCodeEnum.TOKEN_INVALID);//token非法
         }
     }
 
