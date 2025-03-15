@@ -35,7 +35,7 @@ class UserMapperTest {
     void testInsert() {
         Users user = new Users();
         user.setUsername("test1");
-        user.setPasswordHash("123");
+        user.setPassword("123");
         user.setEmail("test@example.com");
         user.setPhone("1234567890");
         if (userMapper.selectCount(new LambdaQueryWrapper<Users>().eq(Users::getUsername, "test1")) == 0) {

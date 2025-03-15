@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.util.Date;
@@ -24,8 +25,10 @@ public class Users {
     @Schema(description = "用户登录名", example = "john_doe", maxLength = 50)
     private String username;
 
-    @Schema(description = "BCrypt加密密码", example = "$2a$10$...", accessMode = Schema.AccessMode.WRITE_ONLY)
-    private String passwordHash;
+    @Schema(description = "密码", example = "123", accessMode =
+            Schema.AccessMode.WRITE_ONLY)
+    @TableField( value = "password_hash")
+    private String password;
 
     @Schema(description = "用户邮箱", example = "user@example.com", format = "email")
     private String email;
@@ -57,8 +60,8 @@ public class Users {
         return (this.getUserId() == null ? other.getUserId() == null : this.getUserId().equals(other.getUserId()))
                 && (this.getUsername() == null ? other.getUsername() == null
                         : this.getUsername().equals(other.getUsername()))
-                && (this.getPasswordHash() == null ? other.getPasswordHash() == null
-                        : this.getPasswordHash().equals(other.getPasswordHash()))
+                && (this.getPassword() == null ? other.getPassword() == null
+                        : this.getPassword().equals(other.getPassword()))
                 && (this.getEmail() == null ? other.getEmail() == null : this.getEmail().equals(other.getEmail()))
                 && (this.getPhone() == null ? other.getPhone() == null : this.getPhone().equals(other.getPhone()))
                 && (this.getCreatedAt() == null ? other.getCreatedAt() == null
@@ -75,7 +78,7 @@ public class Users {
         int result = 1;
         result = prime * result + ((getUserId() == null) ? 0 : getUserId().hashCode());
         result = prime * result + ((getUsername() == null) ? 0 : getUsername().hashCode());
-        result = prime * result + ((getPasswordHash() == null) ? 0 : getPasswordHash().hashCode());
+        result = prime * result + ((getPassword() == null) ? 0 : getPassword().hashCode());
         result = prime * result + ((getEmail() == null) ? 0 : getEmail().hashCode());
         result = prime * result + ((getPhone() == null) ? 0 : getPhone().hashCode());
         result = prime * result + ((getCreatedAt() == null) ? 0 : getCreatedAt().hashCode());
@@ -92,7 +95,7 @@ public class Users {
         sb.append("Hash = ").append(hashCode());
         sb.append(", userId=").append(userId);
         sb.append(", username=").append(username);
-        sb.append(", passwordHash=").append(passwordHash);
+        sb.append(", passwordHash=").append(password);
         sb.append(", email=").append(email);
         sb.append(", phone=").append(phone);
         sb.append(", createdAt=").append(createdAt);

@@ -8,10 +8,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-
+/**
+ * 交易控制器
+ * 提供股票交易下单、查询等功能
+ */
 @RestController
 @RequestMapping("/api/v1/trade")
-@Tag(name = "交易模块", description = "用户交易操作接口")
+@Tag(name = "交易管理", description = "股票交易和订单管理接口")
 public class TradeController {
 
     @PostMapping("/order")

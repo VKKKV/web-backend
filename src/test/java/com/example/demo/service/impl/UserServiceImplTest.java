@@ -64,7 +64,7 @@ class UserServiceImplTest {
     void testSave() {
         Users user = new Users();
         user.setUsername("test1");
-        user.setPasswordHash("test");
+        user.setPassword("test");
         user.setEmail("test6@test.com");
         user.setPhone("1234567890");
 

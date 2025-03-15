@@ -63,7 +63,62 @@ public class JwtUtil {
         } catch (ExpiredJwtException e) {
             throw new TradeException(ResultCodeEnum.TOKEN_EXPIRED);//token过期
         } catch (JwtException e) {
-            throw new TradeException(ResultCodeEnum.TOKEN_INVALID);//token非法
+            throw new TradeException(ResultCodeEnum.TOKEN_INVALID);
+        }
+    }
+
+    /**
+     * 验证令牌是否有效
+     *
+     * @param token JWT 令牌
+     * @return 是否有效
+     */
+    public static boolean validateToken(String token) {
+        try {
+            Jwts.parser()
+                    .verifyWith(tokenSignKey)
+                    .build()
+                    .parseSignedClaims(token);
+            return true;
+        } catch (JwtException e) {
+            return false;
+        }
+    }
+
+    /**
+     * 从令牌中获取用户ID
+     *
+     * @param token JWT 令牌
+     * @return 用户ID
+     */
+    public static Integer getUserIdFromToken(String token) {
+        Claims claims = parseToken(token);
+        return claims.get("userId", Integer.class);
+    }
+
+    /**
+     * 从令牌中获取用户名
+     *
+     * @param token JWT 令牌
+     * @return 用户名
+     */
+    public static String getUsernameFromToken(String token) {
+        Claims claims = parseToken(token);
+        return claims.get("username", String.class);
+    }
+
+    /**
+     * 判断令牌是否过期
+     *
+     * @param token JWT 令牌
+     * @return 是否过期
+     */
+    public static boolean isTokenExpired(String token) {
+        try {
+            Claims claims = parseToken(token);
+            return claims.getExpiration().before(new Date());
+        } catch (Exception e) {
+            return true;
         }
     }
 
