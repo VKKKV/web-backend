@@ -27,7 +27,7 @@ public class Users {
 
     @Schema(description = "密码", example = "123", accessMode =
             Schema.AccessMode.WRITE_ONLY)
-    @TableField( value = "password_hash")
+    @TableField( value = "password_hash", select = false)
     private String password;
 
     @Schema(description = "用户邮箱", example = "user@example.com", format = "email")
