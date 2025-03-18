@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.demo.common.result.Result;
 import com.example.demo.common.result.ResultCodeEnum;
 import com.example.demo.entity.MarketData;
@@ -9,7 +10,6 @@ import com.example.demo.service.MarketDataService;
 import com.example.demo.service.StocksService;
 import com.example.demo.vo.MarketHistoryVO;
 import com.example.demo.vo.StockInfoVO;
-import com.example.demo.vo.StockPageVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,46 +38,25 @@ public class MarketController {
     /**
      * 分页查询股票列表
      *
-     * @param page     页码
-     * @param pageSize 每页大小
+     * @param current     页码
+     * @param size 每页大小
      * @param keyword  搜索关键词
      * @return 分页结果
      */
     @Operation(summary = "分页查询股票", description = "分页获取股票列表，支持按代码或名称搜索")
     @GetMapping("/stocks")
-    public Result<StockPageVO> getStockList(
+    public Result<IPage<Stocks>> getStockList(
             @Parameter(description = "页码", example = "1")
-            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "1") Integer current,
 
             @Parameter(description = "每页大小", example = "10")
-            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(defaultValue = "10") Integer size,
 
-            @Parameter(description = "搜索关键词", example = "")
+            @Parameter(description = "搜索关键词")
             @RequestParam(required = false) String keyword) {
-
+        Page<Stocks> page = new Page<>(current, size);
         // 1. 执行分页查询
-        IPage<Stocks> pageResult = stocksService.getStocksByPage(page, pageSize, keyword);
-
-        // 2. 转换为VO对象
-        List<StockInfoVO> records = pageResult.getRecords().stream()
-                .map(stock -> StockInfoVO.builder()
-                        .code(stock.getStockCode())
-                        .stockName(stock.getStockName())
-                        .market(stock.getMarket())
-                        .build())
-                .collect(Collectors.toList());
-
-        // 3. 构建分页结果
-        StockPageVO result = StockPageVO.builder()
-                .current(pageResult.getCurrent())
-                .size(pageResult.getSize())
-                .total(pageResult.getTotal())
-                .pages(pageResult.getPages())
-                .hasPrevious(pageResult.getCurrent() > 1)
-                .hasNext(pageResult.getCurrent() < pageResult.getPages())
-                .records(records)
-                .build();
-
+        IPage<Stocks> result = stocksService.getStocksByPage(page, keyword);
         return Result.success(result);
     }
 
@@ -142,7 +121,7 @@ public class MarketController {
 
         // 2. 构建返回数据
         StockInfoVO stockInfo = StockInfoVO.builder()
-                .code(stock.getStockCode())
+                .stockCode(stock.getStockCode())
                 .stockName(stock.getStockName())
                 .market(stock.getMarket())
                 .build();

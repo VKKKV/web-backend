@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.demo.entity.Stocks;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.demo.vo.StockInfoVO;
 
 /**
 * @author Kita
@@ -19,10 +20,10 @@ public interface StocksService extends IService<Stocks> {
 
     /**
      * 分页查询股票信息
-     * @param page 页码
-     * @param pageSize 每页大小
-     * @param keyword 搜索关键词（可选）
+     *
+     * @param page     页码
+     * @param keyword  搜索关键词（可选）
      * @return 分页结果
      */
-    IPage<Stocks> getStocksByPage(int page, int pageSize, String keyword);
+    IPage<Stocks> getStocksByPage(IPage<Stocks> page, String keyword);
 }
