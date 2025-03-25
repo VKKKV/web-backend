@@ -104,3 +104,7 @@ ALTER TABLE `trading_strategies`
 
 ALTER TABLE `security_events`
     ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
+
+
+ALTER TABLE `transactions`
+    ADD COLUMN `order_type` ENUM('MARKET', 'LIMIT') NOT NULL DEFAULT 'LIMIT' COMMENT '委托类型' AFTER `action_type`;
