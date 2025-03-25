@@ -27,7 +27,8 @@ public class Users {
 
     @Schema(description = "密码", example = "123", accessMode =
             Schema.AccessMode.WRITE_ONLY)
-    @TableField( value = "password_hash", select = false)
+//    @TableField( value = "password_hash", select = false)
+    @TableField( value = "password_hash")
     private String password;
 
     @Schema(description = "用户邮箱", example = "user@example.com", format = "email")
@@ -89,19 +90,17 @@ public class Users {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(" [");
-        sb.append("Hash = ").append(hashCode());
-        sb.append(", userId=").append(userId);
-        sb.append(", username=").append(username);
-        sb.append(", passwordHash=").append(password);
-        sb.append(", email=").append(email);
-        sb.append(", phone=").append(phone);
-        sb.append(", createdAt=").append(createdAt);
-        sb.append(", updatedAt=").append(updatedAt);
-        sb.append(", isDeleted=").append(isDeleted);
-        sb.append("]");
-        return sb.toString();
+        return getClass().getSimpleName() +
+                " [" +
+                "Hash = " + hashCode() +
+                ", userId=" + userId +
+                ", username=" + username +
+                ", passwordHash=" + password +
+                ", email=" + email +
+                ", phone=" + phone +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", isDeleted=" + isDeleted +
+                "]";
     }
 }
