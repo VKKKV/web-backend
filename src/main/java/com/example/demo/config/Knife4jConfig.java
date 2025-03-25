@@ -42,13 +42,5 @@ public class Knife4jConfig {
                 .pathsToMatch("/api/v1/market/**")
                 .build();
     }
-
-    @Bean
-    public GroupedOpenApi strategyApi() {
-        return GroupedOpenApi.builder()
-                .group("策略管理")
-                .pathsToMatch("/api/v1/strategy/**")
-                .build();
-    }
 }
 
