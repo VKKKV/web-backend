@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.demo.entity.Stocks;
 import com.example.demo.service.StocksService;
 import com.example.demo.mapper.StocksMapper;
-import com.example.demo.vo.StockInfoVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -48,6 +47,12 @@ public class StocksServiceImpl extends ServiceImpl<StocksMapper, Stocks>
             );
         }
         return stocksMapper.selectPage(page, wrapper);
+    }
+
+    @Override
+    public Integer getStockIdByStockCode(String stockCode) {
+        Stocks stock = getByStockCode(stockCode);
+        return stock == null? null : stock.getStockId();
     }
 }
 

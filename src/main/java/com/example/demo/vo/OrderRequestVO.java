@@ -15,8 +15,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Schema(description = "订单请求")
 public class OrderRequestVO {
+    @Schema(description = "用户ID", example = "test", required = true)
+    private Integer userId;
 
-    @Schema(description = "股票代码", example = "AAPL", required = true)
+    @Schema(description = "股票代码", example = "600004", required = true)
     private String stockCode;
 
     @Schema(description = "交易类型", example = "BUY", required = true, allowableValues = {"BUY", "SELL"})
@@ -27,10 +29,7 @@ public class OrderRequestVO {
 
     @Schema(description = "价格", example = "150.75", required = true)
     private Double price;
-    
+
     @Schema(description = "订单类型", example = "LIMIT", allowableValues = {"MARKET", "LIMIT"})
     private String orderType;
-    
-    @Schema(description = "有效期", example = "DAY", allowableValues = {"DAY", "GTC", "IOC"})
-    private String timeInForce;
-} 
+}

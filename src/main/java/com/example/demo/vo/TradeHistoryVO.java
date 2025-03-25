@@ -21,7 +21,7 @@ public class TradeHistoryVO {
     @Schema(description = "交易ID", example = "TRADE123456789")
     private String tradeId;
 
-    @Schema(description = "股票代码", example = "AAPL")
+    @Schema(description = "股票代码", example = "600004")
     private String stockCode;
 
     @Schema(description = "股票名称", example = "苹果公司")

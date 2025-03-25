@@ -3,7 +3,6 @@ package com.example.demo.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.demo.entity.Stocks;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.example.demo.vo.StockInfoVO;
 
 /**
 * @author Kita
@@ -26,4 +25,6 @@ public interface StocksService extends IService<Stocks> {
      * @return 分页结果
      */
     IPage<Stocks> getStocksByPage(IPage<Stocks> page, String keyword);
+
+    Integer getStockIdByStockCode(String stockCode);
 }
