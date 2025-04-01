@@ -109,8 +109,7 @@ public class WebSocketController {
                     confirmation.put("action", "subscribed");
                     confirmation.put("stock_codes", codes);
                     sendMessage(session, confirmation.toString());
-                }
-                else if ("unsubscribe".equals(action) && json.has("stock_codes")) {
+                } else if ("unsubscribe".equals(action) && json.has("stock_codes")) {
                     // 取消订阅
                     Set<String> subscriptions = USER_SUBSCRIPTIONS.get(session);
                     List<Object> codesList = json.getJSONArray("stock_codes").toList();
@@ -162,17 +161,19 @@ public class WebSocketController {
                 }
 
                 // 获取用户的数据模式
-                boolean useTestData = USER_TEST_MODE.getOrDefault(session, true);
+//                boolean useTestData = USER_TEST_MODE.getOrDefault(session, true);
 
                 JSONObject mergedData = new JSONObject();
                 subscriptions.forEach(code -> {
-                    if (useTestData) {
-                        // 使用随机测试数据
-                        generateTestData(mergedData, code);
-                    } else {
-                        // 使用真实数据 (这里可以添加真实数据获取逻辑)
-                        generateRealData(mergedData, code);
-                    }
+//                    if (useTestData) {
+//                        // 使用随机测试数据
+//                        generateTestData(mergedData, code);
+//                    } else {
+//                        // 使用真实数据 (这里可以添加真实数据获取逻辑)
+//                        generateRealData(mergedData, code);
+//                    }
+//                    generateRealData(mergedData, code);
+                    generateTestData(mergedData, code);
                 });
 
                 sendMessage(session, mergedData.toString());
@@ -182,47 +183,41 @@ public class WebSocketController {
         }, 0, 3, TimeUnit.SECONDS);
     }
 
+
     // 生成随机测试数据
     private void generateTestData(JSONObject mergedData, String code) {
+
         List<Double> base = STOCK_BASE.get(code);
         if (base == null) return;
+        double basePrice = base.get(0);
+        double open = basePrice + (Math.random() * 5 - 2.5);
+        double close = basePrice + (Math.random() * 5 - 2.5);
+        double high = Math.max(open, close) + Math.random() * 2;
+        double low = Math.min(open, close) - Math.random() * 2;
+        double volume = 10000 + Math.random() * 5000;
 
-        double price = base.get(0) + (Math.random() * 2 - 1) * base.get(1);
         mergedData.put(code, new JSONObject()
                 .put("timestamp", System.currentTimeMillis())
-                .put("open", price - Math.random() * 2)
-                .put("close", price + Math.random() * 2)
-                .put("high", price + Math.random() * 3)
-                .put("low", price - Math.random() * 3)
-                .put("volume", 10000 + (int)(Math.random() * 5000))
+                .put("open", open)
+                .put("high", high)
+                .put("low", low)
+                .put("close", close)
+                .put("volume", volume)
+                .put("turnover", volume * close)
         );
     }
 
     // 生成真实数据 (示例实现，实际应从外部数据源获取)
     private void generateRealData(JSONObject mergedData, String code) {
         // 这里应该是从真实数据源获取数据的逻辑
-        // 目前使用模拟数据，但波动更小，更接近真实市场
         List<Double> base = STOCK_BASE.get(code);
         if (base == null) return;
 
-        // 使用更小的波动范围
-        double basePrice = base.get(0);
-        double volatility = base.get(1) * 0.2; // 降低波动性
-
-        double change = (Math.random() * 2 - 1) * volatility;
-        double price = basePrice + change;
-
-        // 确保价格不会为负
-        price = Math.max(price, 0.01);
-
-        // 计算开盘价、收盘价、最高价和最低价，使其更符合真实市场规律
-        double open = price - (Math.random() * 0.5) * change;
-        double close = price + (Math.random() * 0.5) * change;
-        double high = Math.max(open, close) + Math.random() * volatility * 0.3;
-        double low = Math.min(open, close) - Math.random() * volatility * 0.3;
-
-        // 成交量与价格变化成正比
-        int volume = 5000 + (int)(Math.abs(change) / volatility * 10000);
+        double open = 0;
+        double close = 0;
+        double high = 0;
+        double low = 0;
+        int volume = 0;
 
         mergedData.put(code, new JSONObject()
                 .put("timestamp", System.currentTimeMillis())
