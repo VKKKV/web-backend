@@ -23,6 +23,7 @@ public class StocksServiceImpl extends ServiceImpl<StocksMapper, Stocks>
     private StocksMapper stocksMapper;
 
     @Override
+//    @Cacheable(value = "stockCode", key = "#stockCode")
     public Stocks getByStockCode(String stockCode) {
         LambdaQueryWrapper<Stocks> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Stocks::getStockCode, stockCode);
