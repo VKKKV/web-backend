@@ -1,3 +1,1 @@
-a tool for stock trading
-
-still in development
+stock trade simulation demo
