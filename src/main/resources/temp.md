@@ -1,52 +1,3 @@
-**股票交易Web平台的设计与实现**
-
-**2. 系统需求与设计**
-
-**3. 关键技术实现**
-**3.1 实时行情架构**
-构建分级推送机制：
-```java
-// WebSocket 服务端消息广播示例
-@ServerEndpoint("/market/{stockCode}")
-public class MarketEndpoint {
-    @OnOpen
-    public void onOpen(Session session, 
-                      @PathParam("stockCode") String code) {
-        RedisSubscriber.subscribe(code, session);
-    }
-}
-```
-配合消息中间件实现削峰填谷，解决开盘时段的流量冲击问题。
-
-**3.2 分布式事务控制**
-采用柔性事务方案处理订单创建与资金扣减：
-```sql
--- 资金账户表设计冗余字段
-CREATE TABLE account (
-    id BIGINT PRIMARY KEY,
-    balance DECIMAL(18,2),
-    frozen_balance DECIMAL(18,2)  -- 预冻结资金字段
-);
-```
-通过事务补偿机制确保最终一致性，日志平台记录操作流水。
-
-**4. 系统核心模块实现**
-**4.1 账户服务模块**
-集成 Spring Security 与 JWT 构建鉴权体系：生成 Token 时加入设备指纹识别，防范凭证盗用。密码存储采用 BCrypt 算法，实施多次错误登陆锁定策略。
-
-**4.3 前端图表模块**
-在 Vue 3 中集成 KLineChart 组件：
-```typescript
-// 绘制日K线图
-const renderChart = (data: KLineData[]) => {
-    const chart = new KLineChart({ 
-        container: "#chart", 
-        theme: "dark" 
-    });
-    chart.applyNewData(data);
-}
-```
-
 
 交易页面增加买入成本，响应式计算属性
 
@@ -100,5 +51,53 @@ const renderChart = (data: KLineData[]) => {
 致谢  
 参考文献  
 
+---
 
+token stock-api:
 a7098d30ae48d4bc8029243d68163971-c-app
+
+---
+
+
+实时行情架构
+推送机制：
+```java
+// WebSocket 服务端消息广播示例
+@ServerEndpoint("/market/{stockCode}")
+public class MarketEndpoint {
+    @OnOpen
+    public void onOpen(Session session, 
+                      @PathParam("stockCode") String code) {
+        RedisSubscriber.subscribe(code, session);
+    }
+}
+```
+
+事务控制
+```sql
+-- 资金账户表设计冗余字段
+CREATE TABLE account (
+    id BIGINT PRIMARY KEY,
+    balance DECIMAL(18,2),
+);
+```
+
+4. 系统核心模块实现
+账户模块
+集成 Spring Security 与 JWT 构建鉴权体系：生成 Token 时加入设备指纹识别，防范凭证盗用。
+
+前端图表
+在 Vue 3 中集成 KLineChart 组件：
+
+```typescript
+// 绘制K线图
+const renderChart = (data: KLineData[]) => {
+    const chart = new KLineChart({ 
+        container: "#chart", 
+        theme: "dark" 
+    });
+    chart.applyNewData(data);
+}
+...
+```
+
