@@ -46,14 +46,6 @@ public class JwtUtil {
         }
 
         try {
-//            //jwt解析器
-//            JwtParser jwtParser = Jwts.parserBuilder().setSigningKey(tokenSignKey).build();
-//            //返回payload
-//            //return jwtParser.parseClaimsJws(token).getBody();//解析token验证签名后，返回payload，即userId、username
-//            Jws<Claims> jwsClaims = jwtParser.parseClaimsJws(token);//解析token，得到jws（带有签名的jwt）
-//            return jwsClaims.getBody();
-
-            // api update in jwt 0.12.0
             return Jwts.parser()
                     .verifyWith(tokenSignKey)
                     .build()
