@@ -46,10 +46,8 @@ public class TradeController {
 //        @RequestHeader String authorization,
             @Parameter(description = "订单请求", required = true)
             @RequestBody OrderRequestVO orderRequest) {
-
         transactionsService.createOrder(orderRequest);
         System.out.println("post order");
-
         return Result.success();
     }
 

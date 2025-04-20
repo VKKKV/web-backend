@@ -66,6 +66,9 @@ public class Transactions {
             accessMode = Schema.AccessMode.READ_ONLY)
     private Date executedAt;
 
+    @Schema(description="股票代码")
+    private String stockCode;
+
     @Override
     public boolean equals(Object that) {
         if (this == that) {

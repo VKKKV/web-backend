@@ -27,9 +27,6 @@ public class TransactionsServiceImpl extends ServiceImpl<TransactionsMapper, Tra
     @Autowired
     private TransactionsMapper transactionsMapper;
 
-    @Autowired
-    private StocksService stocksService;
-
     @Override
     public IPage<Transactions> getHistoryPage(IPage<Transactions> page, Integer userId) {
         LambdaQueryWrapper<Transactions> wrapper = new LambdaQueryWrapper<>();
@@ -42,14 +39,10 @@ public class TransactionsServiceImpl extends ServiceImpl<TransactionsMapper, Tra
 
     @Override
     public void createOrder(OrderRequestVO orderRequest) {
-
-        // get stockId by stockCode
-        String stockCode = orderRequest.getStockCode();
-        Integer stockId = stocksService.getStockIdByStockCode(stockCode);
-
         Transactions transactions = new Transactions();
+        transactions.setStockId(0);
         transactions.setUserId(orderRequest.getUserId());
-        transactions.setStockId(stockId);
+        transactions.setStockCode(orderRequest.getStockCode());
         transactions.setActionType(orderRequest.getType());
         transactions.setQuantity(orderRequest.getQuantity());
         transactions.setPrice(BigDecimal.valueOf(orderRequest.getPrice()));
@@ -57,7 +50,6 @@ public class TransactionsServiceImpl extends ServiceImpl<TransactionsMapper, Tra
         transactions.setOrderType(orderRequest.getOrderType());
 
         transactionsMapper.insert(transactions);
-
     }
 }
 
