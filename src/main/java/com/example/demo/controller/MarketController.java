@@ -3,6 +3,8 @@ package com.example.demo.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 
 
+import com.example.demo.config.StockCodesConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.demo.common.result.Result;
@@ -15,15 +17,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * 行情数据控制器
@@ -157,6 +160,39 @@ public class MarketController {
             return ResponseEntity.status(500).body("数据获取异常");
         } catch (Exception e) {
             return ResponseEntity.status(500).body(e.getMessage());
+        }
+    }
+
+    // 缓存配置避免重复读取
+    private static List<String> cachedStockCodes = Collections.emptyList();
+
+    @GetMapping("/getstock/all")
+    public ResponseEntity<?> getAllStockCodes() {
+        try {
+            if (cachedStockCodes.isEmpty()) {
+                refreshStockCodes();
+            }
+            return ResponseEntity.ok(Map.of("codes", cachedStockCodes));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(Map.of(
+                            "error", "Failed to read stock codes",
+                            "detail", e.getMessage()
+                    ));
+        }
+    }
+
+    private synchronized void refreshStockCodes() throws IOException {
+        Resource resource = new ClassPathResource("/stock_codes.conf");
+        ObjectMapper mapper = new ObjectMapper();
+
+        try (InputStream is = resource.getInputStream()) {
+            StockCodesConfig config = mapper.readValue(is, StockCodesConfig.class);
+            cachedStockCodes = config.getStockCodes() != null ?
+                    config.getStockCodes() :
+                    Collections.emptyList();
+        } catch (JsonProcessingException e) {
+            throw new IOException("Invalid JSON format in stock_codes.conf", e);
         }
     }
 
