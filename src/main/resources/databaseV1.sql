@@ -66,3 +66,6 @@ ALTER TABLE `market_data`
 
 ALTER TABLE `transactions`
     ADD COLUMN `order_type` ENUM('MARKET', 'LIMIT') NOT NULL DEFAULT 'LIMIT' COMMENT '委托类型' AFTER `action_type`;
+
+ALTER TABLE `transactions`
+    ADD COLUMN `stock_code` VARCHAR(20) NOT NULL COMMENT '股票代码';
