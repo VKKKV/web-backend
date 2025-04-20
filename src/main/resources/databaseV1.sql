@@ -69,3 +69,9 @@ ALTER TABLE `transactions`
 
 ALTER TABLE `transactions`
     ADD COLUMN `stock_code` VARCHAR(20) NOT NULL COMMENT '股票代码';
+
+ALTER TABLE `transactions`
+    DROP FOREIGN KEY `transactions_ibfk_2`;  -- 请将 `transactions_ibfk_2` 替换为实际的外键名称
+
+
+
