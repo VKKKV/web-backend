@@ -3,6 +3,8 @@ package com.example.demo.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 
 
+import com.example.demo.common.exception.ServiceException;
+import com.example.demo.common.exception.TradeException;
 import com.example.demo.config.StockCodesConfig;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,6 +19,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -50,6 +53,7 @@ public class MarketController {
      */
     @Operation(summary = "分页查询股票", description = "分页获取股票列表，支持按代码或名称搜索")
     @GetMapping("/stocks")
+    @Cacheable(value = "stockPage", key = "#current + '-' + #size + (#keyword ?: '')")
     public Result<IPage<Stocks>> getStockList(
             @Parameter(description = "页码", example = "1")
             @RequestParam(defaultValue = "1") Integer current,
@@ -73,45 +77,42 @@ public class MarketController {
      */
     @Operation(summary = "获取股票信息", description = "查询股票的基本资料和市场信息")
     @GetMapping("/stocks/{code}")
+    @Cacheable(value = "stockInfo", key = "#code")
     public Result<StockInfoVO> getStockInfo(
-            @Parameter(description = "股票代码", example = "600004", required = true)
+            @Parameter(description = "股票代码", example = "00001", required = true)
             @PathVariable String code) {
-
         // 1. 查询股票信息
         Stocks stock = stocksService.getByStockCode(code);
         if (stock == null) {
             return Result.fail(ResultCodeEnum.DATA_ERROR.getCode(), "股票不存在");
         }
-
         // 2. 构建返回数据
         StockInfoVO stockInfo = StockInfoVO.builder()
                 .stockCode(stock.getStockCode())
                 .stockName(stock.getStockName())
                 .build();
-
         return Result.success(stockInfo);
     }
 
-    @Operation(summary = "获取可交易股票列表", description = "获取可交易股票列表")
-    @GetMapping("/stocksList")
-    public Result<List<StockInfoVO>> getTradableStocks() {
-        // 实际开发中这里应调用Service层获取数据
-        List<StockInfoVO> stockList = new ArrayList<>();
+    //TODO
+//    @Operation(summary = "获取可交易股票列表", description = "获取可交易股票列表")
+//    @GetMapping("/stocksList")
+//    public Result<List<StockInfoVO>> getTradableStocks() {
+//        // 实际开发中这里应调用Service层获取数据
+//        List<StockInfoVO> stockList = new ArrayList<>();
+//        // 示例数据
+//        stockList.add(new StockInfoVO("600000", "浦发银行"));
+//        stockList.add(new StockInfoVO("600004", "白云机场"));
+//        return Result.success(stockList);
+//    }
 
-        // 示例数据（实际应从数据库或配置中心获取）
-        stockList.add(new StockInfoVO("600000", "浦发银行"));
-        stockList.add(new StockInfoVO("600004", "白云机场"));
-
-        return Result.success(stockList);
-    }
-
-
-    @Operation(summary = "获取股票data", description = "获取股票data")
-    @GetMapping("/stockData")
-    public Result<StockInfoVO> getStockData() {
-
-        return Result.success(null);
-    }
+//    TODO
+//    @Operation(summary = "获取股票data", description = "获取股票data")
+//    @GetMapping("/stockData")
+//    public Result<StockInfoVO> getStockData() {
+//
+//        return Result.success(null);
+//    }
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -167,18 +168,15 @@ public class MarketController {
     private static List<String> cachedStockCodes = Collections.emptyList();
 
     @GetMapping("/getstock/all")
-    public ResponseEntity<?> getAllStockCodes() {
+    @Cacheable(value = "stockCodes", key = "'all'") //⭐️改为缓存实际数据而非ResponseEntity
+    public List<String> getAllStockCodes() {
         try {
             if (cachedStockCodes.isEmpty()) {
                 refreshStockCodes();
             }
-            return ResponseEntity.ok(Map.of("codes", cachedStockCodes));
+            return cachedStockCodes; // 直接返回数据集合
         } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .body(Map.of(
-                            "error", "Failed to read stock codes",
-                            "detail", e.getMessage()
-                    ));
+            throw new TradeException("股票代码获取失败", ResultCodeEnum.FAIL.getCode()); //⭐️统一异常处理
         }
     }
 

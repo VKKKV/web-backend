@@ -14,7 +14,7 @@ spring:
       connection-timeout: 60000 #数据库连接超时时间,默认30秒
       idle-timeout: 500000 #空闲连接存活最大时间，默认600000（10分钟）
       max-lifetime: 540000 #此属性控制池中连接的最长生命周期，值0表示无限生命周期，默认1800000即30分钟
-      maximum-pool-size: 12 #连接池最大连接数，默认是10
+      maximum-pool-size: 200 #连接池最大连接数，默认是10
       minimum-idle: 10 #最小空闲连接数量
       pool-name: KitariPool # 连接池名称
       # redis
@@ -23,6 +23,12 @@ spring:
       host: 192.168.31.98
       port: 6379
       database: 0
+  cache:
+    redis:
+      time-to-live: 3000s
+      key-prefix: "cache:"
+      use-key-prefix: true
+      cache-null-values: true
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8

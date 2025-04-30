@@ -1,9 +1,12 @@
 package com.example.demo.common.exception;
 
 import com.example.demo.common.result.Result;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.Map;
 
 //统一异常处理，全局异常处理器error。
 @ControllerAdvice //用于声明处理全局Controller方法异常的类
@@ -24,6 +27,14 @@ public class GlobalExceptionHandler {
         return Result.fail();//发生异常时的返回值。
     }
 
+    @ExceptionHandler(ServiceException.class)
+    public ResponseEntity<Map<String,Object>> handleServiceException(ServiceException e) {
+        return ResponseEntity.status(500)
+                .body(Map.of(
+                        "error", e.getMessage(),
+                        "detail", e.getCause().getMessage()
+                ));
+    }
 
     /**
      * LeaseException异常发生时的处理方法。
