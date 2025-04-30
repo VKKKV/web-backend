@@ -18,6 +18,8 @@ import com.example.demo.vo.StockInfoVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.ClassPathResource;
@@ -30,6 +32,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 行情数据控制器
@@ -116,14 +119,16 @@ public class MarketController {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final String PY_API = "http://localhost:5000/hkstock/";
+    private static final String PY_API = "http://localhost:5000/";
 
     @GetMapping("/getstock/{codes}")
     public ResponseEntity<?> getStock(@PathVariable String codes) {
         RestTemplate restTemplate = new RestTemplate();
         try {
             // 调用Python服务
-            ResponseEntity<Map> response = restTemplate.getForEntity(PY_API + codes, Map.class);
+            String url = PY_API  + "hkstock/" + codes;
+            ResponseEntity<Map> response = restTemplate.getForEntity(url,
+                    Map.class);
 
             if (response.getStatusCode() == HttpStatus.OK &&
                     "success".equals(response.getBody().get("status"))) {
@@ -179,6 +184,117 @@ public class MarketController {
             throw new TradeException("股票代码获取失败", ResultCodeEnum.FAIL.getCode()); //⭐️统一异常处理
         }
     }
+
+    // 分时数据调用
+    @GetMapping("/timekline/{codes}")
+    public ResponseEntity<?> getTimeKline(@PathVariable String codes) {
+        return processKlineRequest(codes, "timekline");
+    }
+
+    // 日K线数据调用
+    @GetMapping("/daykline/{codes}")
+    public ResponseEntity<?> getDayKline(@PathVariable String codes) {
+        return processKlineRequest(codes, "daykline");
+    }
+
+    // 统一处理K线数据请求
+    private ResponseEntity<?> processKlineRequest(String codes, String type) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = PY_API + type + "/" + codes;
+
+        try {
+            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> body = response.getBody();
+
+                if (!"success".equals(body.get("status"))) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(body.get("message"));
+                }
+
+                Map<String, Object> rawData = (Map) body.get("data");
+                List<KlineDTO> resultList = new ArrayList<>();
+
+                rawData.forEach((stockCodeKey, dataNode) -> {
+                    try {
+                        KlineDTO dto = new KlineDTO();
+                        dto.setStockCode(stockCodeKey);
+
+                        if (type.equals("timekline")) {
+                            // 处理分时数据结构
+                            Map<String, Object> timeData = (Map) dataNode;
+                            dto.setDate((String) timeData.get("date"));
+
+                            Map<String, List<String>> timeValues = (Map) timeData.get("time_data");
+                            List<TimeValue> values = timeValues.entrySet().stream()
+                                    .map(entry -> new TimeValue(
+                                            entry.getValue().get(0), // 时间
+                                            entry.getValue().get(1), // 当前价
+                                            Integer.parseInt(entry.getValue().get(2)) // 成交量
+                                    ))
+                                    .collect(Collectors.toList());
+                            dto.setTimeValues(values);
+                        } else {
+                            // 处理日K线结构
+                            List<List<String>> kLines = (List) dataNode;
+                            List<DayKValue> kValues = kLines.stream()
+                                    .map(item -> new DayKValue(
+                                            item.get(0),  // 日期
+                                            item.get(1),  // 今开
+                                            item.get(2),  // 今收
+                                            item.get(3),  // 最高
+                                            item.get(4),  // 最低
+                                            Double.parseDouble(item.get(5)) // 成交量
+                                    ))
+                                    .collect(Collectors.toList());
+                            dto.setDayKValues(kValues);
+                        }
+
+                        resultList.add(dto);
+                    } catch (Exception e) {
+                        System.err.printf("Processing failed for %s | Error: %s%n",
+                                stockCodeKey, e.getMessage());
+                    }
+                });
+                System.out.println(resultList);
+                return ResponseEntity.ok(resultList);
+            }
+            return ResponseEntity.status(response.getStatusCode()).body("Service error");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("调用失败: " + e.getMessage());
+        }
+    }
+
+    // DTO定义
+    @Data
+    static class KlineDTO {
+        private String stockCode;
+        private String date;       // 仅分时数据使用
+        private List<TimeValue> timeValues;  // 分时数据点
+        private List<DayKValue> dayKValues;  // 日K线数据
+    }
+
+    @Data
+    @AllArgsConstructor
+    static class TimeValue {
+        private String time;      // 时间（HHmm）
+        private String price;     // 当前价格
+        private int volume;       // 成交量（股）
+    }
+
+    @Data
+    @AllArgsConstructor
+    static class DayKValue {
+        private String date;      // 日期（yyyy-MM-dd）
+        private String open;      // 开盘价
+        private String close;     // 收盘价
+        private String high;      // 最高价
+        private String low;       // 最低价
+        private double volume;    // 成交量（元）
+    }
+
 
     private synchronized void refreshStockCodes() throws IOException {
         Resource resource = new ClassPathResource("/stock_codes.conf");
