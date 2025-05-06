@@ -126,7 +126,7 @@ public class MarketController {
         RestTemplate restTemplate = new RestTemplate();
         try {
             // 调用Python服务
-            String url = PY_API  + "hkstock/" + codes;
+            String url = PY_API + "hkstock/" + codes;
             ResponseEntity<Map> response = restTemplate.getForEntity(url,
                     Map.class);
 
@@ -222,16 +222,15 @@ public class MarketController {
                         dto.setStockCode(stockCodeKey);
 
                         if (type.equals("timekline")) {
-                            // 处理分时数据结构
-                            Map<String, Object> timeData = (Map) dataNode;
-                            dto.setDate((String) timeData.get("date"));
-
-                            Map<String, List<String>> timeValues = (Map) timeData.get("time_data");
-                            List<TimeValue> values = timeValues.entrySet().stream()
+                            Map<String, Object> dataMap = (Map<String, Object>) dataNode;
+                            List<List<String>> timeValues = (List<List<String>>) dataMap.get("time_data");
+                            String date = (String) dataMap.get("date");
+                            dto.setDate(date);
+                            List<TimeValue> values = timeValues.stream()
                                     .map(entry -> new TimeValue(
-                                            entry.getValue().get(0), // 时间
-                                            entry.getValue().get(1), // 当前价
-                                            Integer.parseInt(entry.getValue().get(2)) // 成交量
+                                            entry.get(0),
+                                            entry.get(1),
+                                            Integer.parseInt(entry.get(2))
                                     ))
                                     .collect(Collectors.toList());
                             dto.setTimeValues(values);
@@ -257,7 +256,6 @@ public class MarketController {
                                 stockCodeKey, e.getMessage());
                     }
                 });
-                System.out.println(resultList);
                 return ResponseEntity.ok(resultList);
             }
             return ResponseEntity.status(response.getStatusCode()).body("Service error");
