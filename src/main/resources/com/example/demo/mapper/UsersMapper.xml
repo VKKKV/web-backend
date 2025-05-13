@@ -13,10 +13,11 @@
             <result property="createdAt" column="created_at" />
             <result property="updatedAt" column="updated_at" />
             <result property="isDeleted" column="is_deleted" />
+            <result property="balance" column="balance" />
     </resultMap>
 
     <sql id="Base_Column_List">
         user_id,username,password_hash,email,phone,created_at,
-        updated_at,is_deleted
+        updated_at,is_deleted,balance
     </sql>
 </mapper>

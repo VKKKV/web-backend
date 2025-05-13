@@ -128,6 +128,7 @@ public class UserController {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .registerTime(user.getCreatedAt())
+                .balance(user.getBalance())
                 .build();
 
         return Result.success(userInfo);

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.math.BigDecimal;
 
 /**
  * 用户信息VO
@@ -32,5 +33,8 @@ public class UserInfoVO {
     
     @Schema(description = "注册时间", example = "2023-01-01T10:00:00Z")
     private Date registerTime;
+
+    @Schema(description = "账户余额", example = "10000.00")
+    private BigDecimal balance;
 
 }

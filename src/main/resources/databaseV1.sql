@@ -73,5 +73,7 @@ ALTER TABLE `transactions`
 ALTER TABLE `transactions`
     DROP FOREIGN KEY `transactions_ibfk_2`;  -- 请将 `transactions_ibfk_2` 替换为实际的外键名称
 
+ALTER TABLE `users`
+    ADD COLUMN `balance` DECIMAL(15, 2) DEFAULT 0.00 COMMENT '账户余额';
 
 

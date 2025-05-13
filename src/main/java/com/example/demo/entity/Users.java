@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.util.Date;
+import java.math.BigDecimal;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -37,6 +38,9 @@ public class Users {
     @Schema(description = "电话号码", example = "13812345678")
     private String phone;
 
+    @Schema(description = "账户余额", example = "10000.00")
+    private BigDecimal balance;
+
     @Schema(description = "创建时间", accessMode = Schema.AccessMode.READ_ONLY)
     private Date createdAt;
 
@@ -65,6 +69,8 @@ public class Users {
                         : this.getPassword().equals(other.getPassword()))
                 && (this.getEmail() == null ? other.getEmail() == null : this.getEmail().equals(other.getEmail()))
                 && (this.getPhone() == null ? other.getPhone() == null : this.getPhone().equals(other.getPhone()))
+                && (this.getBalance() == null ? other.getBalance() == null
+                        : this.getBalance().equals(other.getBalance()))
                 && (this.getCreatedAt() == null ? other.getCreatedAt() == null
                         : this.getCreatedAt().equals(other.getCreatedAt()))
                 && (this.getUpdatedAt() == null ? other.getUpdatedAt() == null
@@ -82,6 +88,7 @@ public class Users {
         result = prime * result + ((getPassword() == null) ? 0 : getPassword().hashCode());
         result = prime * result + ((getEmail() == null) ? 0 : getEmail().hashCode());
         result = prime * result + ((getPhone() == null) ? 0 : getPhone().hashCode());
+        result = prime * result + ((getBalance() == null) ? 0 : getBalance().hashCode());
         result = prime * result + ((getCreatedAt() == null) ? 0 : getCreatedAt().hashCode());
         result = prime * result + ((getUpdatedAt() == null) ? 0 : getUpdatedAt().hashCode());
         result = prime * result + ((getIsDeleted() == null) ? 0 : getIsDeleted().hashCode());
@@ -98,6 +105,7 @@ public class Users {
                 ", passwordHash=" + password +
                 ", email=" + email +
                 ", phone=" + phone +
+                ", balance=" + balance +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 ", isDeleted=" + isDeleted +

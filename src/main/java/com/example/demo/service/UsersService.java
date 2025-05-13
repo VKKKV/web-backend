@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.entity.Users;
 import com.baomidou.mybatisplus.extension.service.IService;
+import java.math.BigDecimal;
 
 /**
 * @author Kita
@@ -35,4 +36,27 @@ public interface UsersService extends IService<Users> {
      * @param newPassword 新密码
      */
     void updatePassword(Integer userId, String oldPassword, String newPassword);
+
+    /**
+     * 获取用户余额
+     * @param userId 用户ID
+     * @return 用户余额
+     */
+    BigDecimal getUserBalance(Integer userId);
+
+    /**
+     * 更新用户余额
+     * @param userId 用户ID
+     * @param amountChange 余额变动金额（正数为增加，负数为减少）
+     * @return 更新是否成功
+     */
+    boolean updateUserBalance(Integer userId, BigDecimal amountChange);
+
+    /**
+     * 检查用户余额是否充足
+     * @param userId 用户ID
+     * @param amountNeeded 需要的金额
+     * @return 是否充足
+     */
+    boolean checkSufficientBalance(Integer userId, BigDecimal amountNeeded);
 }

@@ -9,9 +9,11 @@ import com.example.demo.entity.Users;
 import com.example.demo.service.UsersService;
 import com.example.demo.mapper.UsersMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -24,6 +26,9 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
 
     @Autowired
     private UsersMapper usersMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     /**
      * 判断用户是否存在，不存在则注册，存在则登录返回jwt-token
@@ -47,7 +52,7 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
         }
 
         // 4. 验证密码是否正确
-        if (!password.equals(user.getPassword())) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new TradeException(ResultCodeEnum.PASSWORD_ERROR);
         }
 
@@ -79,12 +84,13 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
         Users user = new Users();
         user.setUsername(username);
         // 使用BCrypt加密密码
-        user.setPassword(password);
+        user.setPassword(passwordEncoder.encode(password));
         user.setEmail(email);
         user.setPhone(phone);
         user.setCreatedAt(new Date());
         user.setUpdatedAt(new Date());
         user.setIsDeleted(0); // 设置为未删除状态
+        user.setBalance(new BigDecimal("1000000.00")); // 设置默认余额
 
         // 4. 保存用户
         usersMapper.insert(user);
@@ -109,15 +115,61 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements
         }
 
         // 3. 验证旧密码
-        if (!oldPassword.equals(user.getPassword())) {
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new TradeException(ResultCodeEnum.PASSWORD_ERROR);
         }
 
         // 4. 更新密码
-        user.setPassword(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
         user.setUpdatedAt(new Date());
 
         usersMapper.updateById(user);
+    }
+
+    @Override
+    public BigDecimal getUserBalance(Integer userId) {
+        Users user = usersMapper.selectById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new TradeException(ResultCodeEnum.USER_NOT_EXIST);
+        }
+        return user.getBalance();
+    }
+
+    @Override
+    public boolean updateUserBalance(Integer userId, BigDecimal amountChange) {
+        Users user = usersMapper.selectById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new TradeException(ResultCodeEnum.USER_NOT_EXIST);
+        }
+
+        BigDecimal currentBalance = user.getBalance();
+        if (currentBalance == null) {
+            // 处理 balance 可能为 null 的情况，例如给予一个初始值或抛出错误
+            // 这里我们假设如果 balance 为 null，则视为0
+            currentBalance = BigDecimal.ZERO;
+        }
+        BigDecimal newBalance = currentBalance.add(amountChange);
+
+        if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
+            // 不允许余额为负数
+            // 可以抛出自定义异常，如 InsufficientBalanceException
+            throw new TradeException(ResultCodeEnum.INSUFFICIENT_BALANCE);
+//            return false; // 或者返回false表示更新失败
+        }
+
+        user.setBalance(newBalance);
+        user.setUpdatedAt(new Date());
+        int updatedRows = usersMapper.updateById(user);
+        return updatedRows > 0;
+    }
+
+    @Override
+    public boolean checkSufficientBalance(Integer userId, BigDecimal amountNeeded) {
+        BigDecimal currentBalance = getUserBalance(userId);
+        if (currentBalance == null) {
+            return false; // 如果余额为null，视为不足
+        }
+        return currentBalance.compareTo(amountNeeded) >= 0;
     }
 }
 
