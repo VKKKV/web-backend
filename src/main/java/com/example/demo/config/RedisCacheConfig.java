@@ -24,7 +24,7 @@ public class RedisCacheConfig {
         return RedisCacheConfiguration.defaultCacheConfig()
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
-                        //⭐️ 修复方案1：自定义序列化器（推荐）
+                        //自定义序列化器
                         new GenericJackson2JsonRedisSerializer(new ObjectMapper()
                                 .registerModule(new ParameterNamesModule())
                                 .registerModule(new Jdk8Module())
@@ -32,6 +32,6 @@ public class RedisCacheConfig {
                                 .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
                         )))
                 .entryTtl(Duration.ofMinutes(30))
-                .disableCachingNullValues(); //⭐️ 禁止缓存空值
+                .disableCachingNullValues(); // 禁止缓存空值
     }
 }

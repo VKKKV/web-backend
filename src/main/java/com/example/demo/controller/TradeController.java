@@ -42,8 +42,6 @@ public class TradeController {
     @Operation(summary = "提交订单", description = "创建股票买入或卖出订单")
     @PostMapping("/order")
     public Result<OrderResponseVO> createOrder(
-//        @Parameter(description = "授权令牌", required = true)
-//        @RequestHeader String authorization,
             @Parameter(description = "订单请求", required = true)
             @RequestBody OrderRequestVO orderRequest) {
         transactionsService.createOrder(orderRequest);

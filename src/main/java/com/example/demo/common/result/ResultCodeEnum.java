@@ -22,6 +22,7 @@ public enum ResultCodeEnum {
     USERNAME_EXIST(402, "用户名已存在"),
     PASSWORD_ERROR(403, "密码错误"),
     USER_DISABLED(404, "用户已被禁用"),
+    INSUFFICIENT_BALANCE(405, "账户余额不足"),
 
     ADMIN_ACCOUNT_EXIST_ERROR(301, "账号已存在"),
     ADMIN_CAPTCHA_CODE_ERROR(302, "验证码错误"),
