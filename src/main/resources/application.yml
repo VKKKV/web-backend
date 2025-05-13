@@ -5,7 +5,7 @@ spring:
   application:
     name: demo1
   datasource:
-    url: jdbc:mysql://192.168.31.98:3306/databaseV1?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://192.168.31.42:3306/databaseV1?useSSL=false&serverTimezone=UTC
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -20,7 +20,7 @@ spring:
       # redis
   data:
     redis:
-      host: 192.168.31.98
+      host: 192.168.31.42
       port: 6379
       database: 0
   cache:
@@ -47,6 +47,16 @@ springdoc:
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+      base-path: /actuator
+  endpoint:
+    prometheus:
+      access: unrestricted
 
 #mybatis-plus:
 #  global-config:
