@@ -3,252 +3,275 @@ package com.example.demo.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
 import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
+import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.*;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
-
-@RestController
+@Component
 @ServerEndpoint("/ws/v1/market/subscribe")
-@Tag(name = "行情数据模块", description = "股票市场数据接口")
+@Tag(name = "行情数据模块", description = "股票市场数据接口 (WebSocket)")
 public class WebSocketController {
-    private static final Logger LOGGER = Logger.getLogger(WebSocketController.class.getName());
 
-    private static final Map<String, List<Double>> STOCK_BASE = Map.of(
-            "AAPL", Arrays.asList(185.0, 5.0),
-            "TSLA", Arrays.asList(250.0, 8.0)
-    );
+    private static final Logger logger = Logger.getLogger(WebSocketController.class.getName());
+    private static final Map<String, Session> sessions = new ConcurrentHashMap<>();
+    // sessionId -> Set<stockCode>
+    private static final Map<String, Set<String>> clientSubscriptions = new ConcurrentHashMap<>();
+    // stockCode -> Set<sessionId>
+    private static final Map<String, Set<String>> stockToSessionIds = new ConcurrentHashMap<>();
+    private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private static final String STOCK_API_URL_BASE = "http://localhost:8080/api/v1/market/getstock/"; // Assuming {codes} is path param
 
-    // 线程安全的连接管理
-    private static final ConcurrentHashMap<Session, ScheduledExecutorService> SESSION_MAP = new ConcurrentHashMap<>();
-
-    // 用户订阅的股票代码
-    private static final ConcurrentHashMap<Session, Set<String>> USER_SUBSCRIPTIONS = new ConcurrentHashMap<>();
-
-    // 用户数据模式设置 (true: 使用随机测试数据, false: 使用真实数据)
-    private static final ConcurrentHashMap<Session, Boolean> USER_TEST_MODE = new ConcurrentHashMap<>();
+    // Static initializer to start the scheduler
+    static {
+        scheduler.scheduleAtFixedRate(WebSocketController::broadcastMarketData, 5, 5, TimeUnit.MINUTES); // Broadcast every 5 seconds
+        logger.info("WebSocket Market Data Scheduler started.");
+    }
 
     @OnOpen
-    @Operation(summary = "建立WebSocket连接", description = "客户端连接WebSocket服务器时调用")
     public void onOpen(Session session) {
-        LOGGER.info("新的WebSocket连接已建立: " + session.getId());
-        // 每个连接独立处理
-        SESSION_MAP.put(session, Executors.newSingleThreadScheduledExecutor());
-        USER_SUBSCRIPTIONS.put(session, new HashSet<>());
-        USER_TEST_MODE.put(session, true); // 默认使用测试数据
+        sessions.put(session.getId(), session);
+        clientSubscriptions.put(session.getId(), Collections.synchronizedSet(new HashSet<>()));
+        logger.info("WebSocket connection opened: " + session.getId());
     }
 
     @OnMessage
-    @Operation(summary = "接收WebSocket消息", description = "处理客户端发送的消息，包括订阅/取消订阅和数据模式设置")
     public void onMessage(String message, Session session) {
+        logger.info("Message from " + session.getId() + ": " + message);
         try {
-            LOGGER.info("收到消息: " + message);
-            JSONObject json = new JSONObject(message);
-
-            // 处理心跳消息
-            if (json.has("type") && "ping".equals(json.getString("type"))) {
-                JSONObject pong = new JSONObject();
-                pong.put("type", "pong");
-                pong.put("timestamp", System.currentTimeMillis());
-                sendMessage(session, pong.toString());
-                return;
-            }
-
-            // 处理数据模式切换
-            if (json.has("action") && "setDataMode".equals(json.getString("action"))) {
-                boolean useTestData = json.getBoolean("useTestData");
-                USER_TEST_MODE.put(session, useTestData);
-
-                // 发送确认消息
-                JSONObject confirmation = new JSONObject();
-                confirmation.put("action", "dataModeSet");
-                confirmation.put("useTestData", useTestData);
-                sendMessage(session, confirmation.toString());
-
-                LOGGER.info("用户 " + session.getId() + " 设置数据模式: " + (useTestData ? "测试数据" : "真实数据"));
-                return;
-            }
-
-            // 处理订阅/取消订阅请求
-            if (json.has("action")) {
-                String action = json.getString("action");
-
-                if ("subscribe".equals(action) && json.has("stock_codes")) {
-                    // 获取用户的订阅集合
-                    Set<String> subscriptions = USER_SUBSCRIPTIONS.get(session);
-
-                    // 添加新的订阅
-                    List<Object> codesList = json.getJSONArray("stock_codes").toList();
-                    List<String> codes = codesList.stream()
-                            .map(Object::toString)
-                            .filter(STOCK_BASE::containsKey) // 只订阅支持的股票
-                            .toList();
-
-                    subscriptions.addAll(codes);
-                    LOGGER.info("用户订阅股票: " + codes);
-
-                    // 如果这是第一次订阅，启动数据推送
-                    if (subscriptions.size() > 0 && !SESSION_MAP.get(session).isShutdown()) {
-                        startDataPush(session, subscriptions);
-                    }
-
-                    // 发送订阅确认
-                    JSONObject confirmation = new JSONObject();
-                    confirmation.put("action", "subscribed");
-                    confirmation.put("stock_codes", codes);
-                    sendMessage(session, confirmation.toString());
-                } else if ("unsubscribe".equals(action) && json.has("stock_codes")) {
-                    // 取消订阅
-                    Set<String> subscriptions = USER_SUBSCRIPTIONS.get(session);
-                    List<Object> codesList = json.getJSONArray("stock_codes").toList();
-
-                    codesList.stream()
-                            .map(Object::toString)
-                            .forEach(subscriptions::remove);
-
-                    LOGGER.info("用户取消订阅股票: " + codesList);
-
-                    // 发送取消订阅确认
-                    JSONObject confirmation = new JSONObject();
-                    confirmation.put("action", "unsubscribed");
-                    confirmation.put("stock_codes", codesList);
-                    sendMessage(session, confirmation.toString());
+            JSONObject jsonMessage = new JSONObject(message);
+            String action = jsonMessage.optString("action");
+            JSONArray stockCodesJson = jsonMessage.optJSONArray("stock_codes");
+            Set<String> stockCodes = new HashSet<>();
+            if (stockCodesJson != null) {
+                for (int i = 0; i < stockCodesJson.length(); i++) {
+                    stockCodes.add(stockCodesJson.getString(i).toUpperCase());
                 }
             }
+
+            if ("subscribe".equalsIgnoreCase(action)) {
+                handleSubscription(session, stockCodes, true);
+                 // Optionally, send current data immediately upon subscription for a better UX
+                sendCurrentDataForSession(session, stockCodes);
+            } else if ("unsubscribe".equalsIgnoreCase(action)) {
+                handleSubscription(session, stockCodes, false);
+            }
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "处理消息时出错", e);
+            logger.log(Level.SEVERE, "Error processing message from " + session.getId(), e);
+        }
+    }
+    
+    private void sendCurrentDataForSession(Session session, Set<String> stockCodes) {
+        if (stockCodes == null || stockCodes.isEmpty()) {
+            return;
+        }
+        List<JSONObject> stockDataList = fetchStockData(stockCodes);
+        if (!stockDataList.isEmpty()) {
             try {
-                // 发送错误响应
-                JSONObject error = new JSONObject();
-                error.put("error", "处理请求时出错");
-                error.put("message", e.getMessage());
-                sendMessage(session, error.toString());
-            } catch (Exception ex) {
-                LOGGER.log(Level.SEVERE, "发送错误响应时出错", ex);
+                session.getBasicRemote().sendText(new JSONArray(stockDataList).toString());
+                logger.info("Sent initial data for " + stockCodes + " to session " + session.getId());
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Failed to send initial data to session " + session.getId(), e);
             }
         }
     }
 
-    private void startDataPush(Session session, Set<String> codes) {
-        ScheduledExecutorService scheduler = SESSION_MAP.get(session);
 
-        // 取消之前的任务（如果有）
-        scheduler.shutdownNow();
+    private void handleSubscription(Session session, Set<String> stockCodes, boolean subscribe) {
+        String sessionId = session.getId();
+        Set<String> currentSessionSubscriptions = clientSubscriptions.getOrDefault(sessionId, Collections.synchronizedSet(new HashSet<>()));
 
-        // 创建新的调度器
-        scheduler = Executors.newSingleThreadScheduledExecutor();
-        SESSION_MAP.put(session, scheduler);
-
-        // 定时推送数据
-        scheduler.scheduleAtFixedRate(() -> {
-            try {
-                // 获取最新的订阅列表
-                Set<String> subscriptions = USER_SUBSCRIPTIONS.get(session);
-                if (subscriptions == null || subscriptions.isEmpty()) {
-                    return;
+        for (String stockCode : stockCodes) {
+            if (subscribe) {
+                currentSessionSubscriptions.add(stockCode);
+                stockToSessionIds.computeIfAbsent(stockCode, k -> Collections.synchronizedSet(new HashSet<>())).add(sessionId);
+                logger.info("Session " + sessionId + " subscribed to " + stockCode);
+            } else {
+                currentSessionSubscriptions.remove(stockCode);
+                Set<String> sessionsForStock = stockToSessionIds.get(stockCode);
+                if (sessionsForStock != null) {
+                    sessionsForStock.remove(sessionId);
+                    if (sessionsForStock.isEmpty()) {
+                        stockToSessionIds.remove(stockCode);
+                    }
                 }
-
-                // 获取用户的数据模式
-//                boolean useTestData = USER_TEST_MODE.getOrDefault(session, true);
-
-                JSONObject mergedData = new JSONObject();
-                subscriptions.forEach(code -> {
-//                    if (useTestData) {
-//                        // 使用随机测试数据
-//                        generateTestData(mergedData, code);
-//                    } else {
-//                        // 使用真实数据 (这里可以添加真实数据获取逻辑)
-//                        generateRealData(mergedData, code);
-//                    }
-//                    generateRealData(mergedData, code);
-                    generateTestData(mergedData, code);
-                });
-
-                sendMessage(session, mergedData.toString());
-            } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "推送数据时出错", e);
+                logger.info("Session " + sessionId + " unsubscribed from " + stockCode);
             }
-        }, 0, 3, TimeUnit.SECONDS);
-    }
-
-
-    // 生成随机测试数据
-    private void generateTestData(JSONObject mergedData, String code) {
-
-        List<Double> base = STOCK_BASE.get(code);
-        if (base == null) return;
-        double basePrice = base.get(0);
-        double open = basePrice + (Math.random() * 5 - 2.5);
-        double close = basePrice + (Math.random() * 5 - 2.5);
-        double high = Math.max(open, close) + Math.random() * 2;
-        double low = Math.min(open, close) - Math.random() * 2;
-        double volume = 10000 + Math.random() * 5000;
-
-        mergedData.put(code, new JSONObject()
-                .put("timestamp", System.currentTimeMillis())
-                .put("open", open)
-                .put("high", high)
-                .put("low", low)
-                .put("close", close)
-                .put("volume", volume)
-                .put("turnover", volume * close)
-        );
-    }
-
-    // 生成真实数据 (示例实现，实际应从外部数据源获取)
-    private void generateRealData(JSONObject mergedData, String code) {
-        // 这里应该是从真实数据源获取数据的逻辑
-        List<Double> base = STOCK_BASE.get(code);
-        if (base == null) return;
-
-        double open = 0;
-        double close = 0;
-        double high = 0;
-        double low = 0;
-        int volume = 0;
-
-        mergedData.put(code, new JSONObject()
-                .put("timestamp", System.currentTimeMillis())
-                .put("open", open)
-                .put("close", close)
-                .put("high", high)
-                .put("low", low)
-                .put("volume", volume)
-        );
+        }
+        clientSubscriptions.put(sessionId, currentSessionSubscriptions);
     }
 
     @OnClose
-    @Operation(summary = "关闭WebSocket连接", description = "客户端断开连接时调用，清理资源")
     public void onClose(Session session) {
-        LOGGER.info("WebSocket连接已关闭: " + session.getId());
-        // 关闭时清理资源
-        ScheduledExecutorService scheduler = SESSION_MAP.remove(session);
-        if (scheduler != null) {
-            scheduler.shutdownNow();
-        }
-        USER_SUBSCRIPTIONS.remove(session);
-        USER_TEST_MODE.remove(session);
-    }
-
-    private void sendMessage(Session session, String message) {
-        if (session.isOpen()) {
-            try {
-                session.getBasicRemote().sendText(message);
-            } catch (IOException e) {
-                LOGGER.log(Level.SEVERE, "发送消息时出错", e);
+        String sessionId = session.getId();
+        sessions.remove(sessionId);
+        Set<String> subscribedCodes = clientSubscriptions.remove(sessionId);
+        if (subscribedCodes != null) {
+            for (String stockCode : subscribedCodes) {
+                Set<String> sessionsForStock = stockToSessionIds.get(stockCode);
+                if (sessionsForStock != null) {
+                    sessionsForStock.remove(sessionId);
+                    if (sessionsForStock.isEmpty()) {
+                        stockToSessionIds.remove(stockCode);
+                    }
+                }
             }
         }
+        logger.info("WebSocket connection closed: " + sessionId);
+    }
+
+    @OnError
+    public void onError(Session session, Throwable throwable) {
+        logger.log(Level.SEVERE, "WebSocket error for session " + session.getId(), throwable);
+        // Optionally, try to close the session gracefully if an error occurs
+        try {
+            if (session.isOpen()) {
+                session.close();
+            }
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Error closing session after error", e);
+        } finally {
+            // Ensure cleanup like onClose
+            onClose(session);
+        }
+    }
+
+    private static void broadcastMarketData() {
+        Set<String> allSubscribedCodes = new HashSet<>();
+        stockToSessionIds.keySet().forEach(allSubscribedCodes::add);
+
+        if (allSubscribedCodes.isEmpty()) {
+            // logger.info("No active subscriptions. Skipping data fetch.");
+            return;
+        }
+
+        List<JSONObject> fetchedStockDataList = fetchStockData(allSubscribedCodes);
+        if (fetchedStockDataList.isEmpty()) {
+            // logger.info("No data fetched for codes: " + allSubscribedCodes);
+            return;
+        }
+        
+        // Create a map of stockCode to its data for efficient lookup
+        Map<String, JSONObject> dataMap = fetchedStockDataList.stream()
+            .collect(Collectors.toMap(obj -> obj.getString("stock_code"), obj -> obj));
+
+        sessions.forEach((sessionId, session) -> {
+            if (session.isOpen()) {
+                Set<String> sessionSubscriptions = clientSubscriptions.get(sessionId);
+                if (sessionSubscriptions != null && !sessionSubscriptions.isEmpty()) {
+                    List<JSONObject> dataForThisSession = new ArrayList<>();
+                    for (String subscribedCode : sessionSubscriptions) {
+                        if (dataMap.containsKey(subscribedCode)) {
+                            dataForThisSession.add(dataMap.get(subscribedCode));
+                        }
+                    }
+                    
+                    if (!dataForThisSession.isEmpty()) {
+                        try {
+                            session.getBasicRemote().sendText(new JSONArray(dataForThisSession).toString());
+                            // logger.info("Sent data to session " + sessionId + " for codes: " + sessionSubscriptions);
+                        } catch (IOException e) {
+                            logger.log(Level.WARNING, "Failed to send data to session " + sessionId, e);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Fetches and transforms stock data
+    private static List<JSONObject> fetchStockData(Set<String> stockCodes) {
+        List<JSONObject> transformedDataList = new ArrayList<>();
+        if (stockCodes.isEmpty()) {
+            return transformedDataList;
+        }
+
+        String codesParam = String.join(",", stockCodes);
+        try {
+            URL url = new URL(STOCK_API_URL_BASE + codesParam);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setConnectTimeout(5000); // 5 seconds
+            con.setReadTimeout(5000);   // 5 seconds
+
+            int status = con.getResponseCode();
+            if (status == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8));
+                String inputLine;
+                StringBuilder content = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    content.append(inputLine);
+                }
+                in.close();
+                con.disconnect();
+
+                JSONArray rawDataArray = new JSONArray(content.toString());
+                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                sdf.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai")); // Assuming market time is Shanghai time
+
+                for (int i = 0; i < rawDataArray.length(); i++) {
+                    JSONObject rawStock = rawDataArray.getJSONObject(i);
+                    JSONObject transformedStock = new JSONObject();
+                    transformedStock.put("stock_code", rawStock.optString("stockCode", rawStock.optString("stock_code")));
+                    transformedStock.put("name", rawStock.optString("name"));
+                    transformedStock.put("price", rawStock.optString("price")); // Keep as string, client parses
+                    transformedStock.put("lastPrice", rawStock.optString("lastPrice"));
+                    transformedStock.put("openPrice", rawStock.optString("openPrice"));
+                    transformedStock.put("high", rawStock.optString("high"));
+                    transformedStock.put("low", rawStock.optString("low"));
+                    transformedStock.put("volume", rawStock.optString("amount", rawStock.optString("volume"))); // Map 'amount' to 'volume'
+                    
+                    // Add a time field; if API provides one use it, otherwise current time.
+                    // Assuming API provides 'time' field, e.g., "14:30:00"
+                    // If not, we can add current server time formatted.
+                    transformedStock.put("time", rawStock.optString("time", sdf.format(new Date())));
+
+
+                    transformedDataList.add(transformedStock);
+                }
+            } else {
+                logger.warning("Failed to fetch stock data. HTTP Status: " + status + " for codes: " + codesParam);
+                 try (BufferedReader errorStream = new BufferedReader(new InputStreamReader(con.getErrorStream()))) {
+                    String errorLine;
+                    StringBuilder errorResponse = new StringBuilder();
+                    while ((errorLine = errorStream.readLine()) != null) {
+                        errorResponse.append(errorLine);
+                    }
+                    logger.warning("Error response: " + errorResponse.toString());
+                } catch (Exception e) {
+                    logger.warning("Additionally, failed to read error stream: " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Exception fetching stock data for codes: " + codesParam, e);
+        }
+        return transformedDataList;
     }
 }

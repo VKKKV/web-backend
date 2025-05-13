@@ -46,6 +46,13 @@ public class MarketController {
     @Autowired
     private StocksService stocksService;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final String PY_API = "http://localhost:5000/";
+
+    // 缓存配置避免重复读取
+    private static List<String> cachedStockCodes = Collections.emptyList();
+
     /**
      * 分页查询股票列表
      *
@@ -97,31 +104,10 @@ public class MarketController {
         return Result.success(stockInfo);
     }
 
-    //TODO
-//    @Operation(summary = "获取可交易股票列表", description = "获取可交易股票列表")
-//    @GetMapping("/stocksList")
-//    public Result<List<StockInfoVO>> getTradableStocks() {
-//        // 实际开发中这里应调用Service层获取数据
-//        List<StockInfoVO> stockList = new ArrayList<>();
-//        // 示例数据
-//        stockList.add(new StockInfoVO("600000", "浦发银行"));
-//        stockList.add(new StockInfoVO("600004", "白云机场"));
-//        return Result.success(stockList);
-//    }
 
-//    TODO
-//    @Operation(summary = "获取股票data", description = "获取股票data")
-//    @GetMapping("/stockData")
-//    public Result<StockInfoVO> getStockData() {
-//
-//        return Result.success(null);
-//    }
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    private static final String PY_API = "http://localhost:5000/";
-
+    @Operation(summary = "获取多个股票实时数据", description = "通过Python API获取多个股票的实时市场数据")
     @GetMapping("/getstock/{codes}")
+//    @Cacheable(value = "stockData", key = "#codes")
     public ResponseEntity<?> getStock(@PathVariable String codes) {
         RestTemplate restTemplate = new RestTemplate();
         try {
@@ -169,11 +155,9 @@ public class MarketController {
         }
     }
 
-    // 缓存配置避免重复读取
-    private static List<String> cachedStockCodes = Collections.emptyList();
 
     @GetMapping("/getstock/all")
-    @Cacheable(value = "stockCodes", key = "'all'") //⭐️改为缓存实际数据而非ResponseEntity
+    @Cacheable(value = "stockCodes", key = "'all'") //️改为缓存实际数据而非ResponseEntity
     public List<String> getAllStockCodes() {
         try {
             if (cachedStockCodes.isEmpty()) {
@@ -181,18 +165,22 @@ public class MarketController {
             }
             return cachedStockCodes; // 直接返回数据集合
         } catch (Exception e) {
-            throw new TradeException("股票代码获取失败", ResultCodeEnum.FAIL.getCode()); //⭐️统一异常处理
+            throw new TradeException("股票代码获取失败", ResultCodeEnum.FAIL.getCode()); 
         }
     }
 
     // 分时数据调用
+    @Operation(summary = "获取股票分时K线数据", description = "通过Python API获取指定股票的分时K线数据")
     @GetMapping("/timekline/{codes}")
+    @Cacheable(value = "stockTimeKline", key = "#codes")
     public ResponseEntity<?> getTimeKline(@PathVariable String codes) {
         return processKlineRequest(codes, "timekline");
     }
 
     // 日K线数据调用
+    @Operation(summary = "获取股票日K线数据", description = "通过Python API获取指定股票的日K线数据")
     @GetMapping("/daykline/{codes}")
+    @Cacheable(value = "stockDayKline", key = "#codes")
     public ResponseEntity<?> getDayKline(@PathVariable String codes) {
         return processKlineRequest(codes, "daykline");
     }
